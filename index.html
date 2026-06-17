@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1b5e20">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Westlake">
+<title>Westlake Business Manager</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-512.png">
+<link rel="icon" type="image/png" href="icon-512.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="app-header no-print">
+<img src="logo.png" class="header-logo" alt="Westlake Tree Experts">
+<div>
+<h1>Westlake Business Manager</h1>
+<p>Shared Supabase cloud app</p>
+</div>
+</header>
+<section id="setupScreen" class="screen">
+  <div class="form-card narrow">
+    <img src="logo.png" class="setup-logo" alt="Westlake Tree Experts">
+    <h2>Supabase Setup</h2>
+    <p class="hint">Paste your Supabase Project URL and anon public key. Do not use the service role key.</p>
+    <label>Supabase URL<input id="supabaseUrl" placeholder="https://project.supabase.co"></label>
+    <label>Supabase anon public key<textarea id="supabaseAnonKey"></textarea></label>
+    <button class="primary" id="saveSetupBtn" type="button">Save Setup</button>
+    <p class="hint">Run the included <strong>supabase-shared-schema.sql</strong> file in Supabase SQL Editor first.</p>
+  </div>
+</section>
+<section id="authScreen" class="screen hidden">
+  <div class="form-card narrow">
+    <img src="logo.png" class="setup-logo" alt="Westlake Tree Experts">
+    <h2>Login</h2>
+    <label>Email<input id="authEmail" type="email" autocomplete="email"></label>
+    <label>Password<input id="authPassword" type="password" autocomplete="current-password"></label>
+    <div class="row-actions">
+      <button class="primary" id="signInBtn" type="button">Sign In</button>
+      <button id="signUpBtn" type="button">Create Account</button>
+      <button id="resetPasswordBtn" type="button">Reset Password</button>
+      <button class="danger" id="resetSetupBtn" type="button">Reset Setup</button>
+    </div>
+    <p id="authMessage" class="message"></p>
+  </div>
+</section>
+<section id="businessScreen" class="screen hidden">
+  <div class="form-card narrow">
+    <img src="logo.png" class="setup-logo" alt="Westlake Tree Experts">
+    <h2>Business Access</h2>
+    <p class="hint">Create the shared Westlake business once. Your partner can join using the Business ID in Settings.</p>
+    <label>Business Name<input id="businessCreateName" value="Westlake Tree Experts"></label>
+    <button class="primary" id="createBusinessBtn" type="button">Create Business</button>
+    <hr>
+    <label>Join Existing Business ID<input id="joinBusinessId" placeholder="Paste partner's Business ID"></label>
+    <button id="joinBusinessBtn" type="button">Join Business</button>
+    <button id="businessSignOutBtn" type="button">Sign Out</button>
+    <p id="businessMessage" class="message"></p>
+  </div>
+</section>
+<div id="appShell" class="hidden">
+<nav class="tabs no-print">
+<button class="tab active" data-view="home">Home</button>
+<button class="tab" data-view="jobs">Jobs</button>
+<button class="tab" data-view="documents">Invoices & Estimates</button>
+<button class="tab" data-view="customers">Customers</button>
+<button class="tab" data-view="equipment">Equipment</button>
+<button class="tab" data-view="expenses">Expenses</button>
+<button class="tab" data-view="reports">Reports</button>
+<button class="tab" data-view="settings">Settings</button>
+</nav>
+<main>
+<section id="home" class="view active">
+<div class="title-row"><h2>Home</h2><button class="primary" id="homeNewEstimateBtn" type="button">New Estimate</button></div>
+<div class="cards dashboard-cards">
+<button class="card card-button" id="dashRevenueBtn" type="button"><span>Revenue This Month</span><strong id="homeMonth">$0.00</strong></button>
+<button class="card card-button" id="dashOpenInvoicesBtn" type="button"><span>Open Invoices</span><strong id="homeOpenInvoices">0</strong></button>
+<button class="card card-button" id="dashPaidInvoicesBtn" type="button"><span>Paid Invoices</span><strong id="homePaidInvoices">0</strong></button>
+<button class="card card-button" id="dashOpenEstimatesBtn" type="button"><span>Open Estimates</span><strong id="homeOpenEstimates">0</strong></button>
+<button class="card card-button" id="dashScheduledJobsBtn" type="button"><span>Jobs Scheduled</span><strong id="homeJobsScheduled">0</strong></button>
+</div>
+<div class="quick-actions">
+<button id="quickNewInvoiceBtn" type="button">New Invoice</button>
+<button id="quickNewCustomerBtn" type="button">New Customer</button>
+<button id="quickNewEstimateBtn" type="button">New Estimate</button>
+<button id="quickRecordPaymentBtn" type="button">Record Payment</button>
+</div>
+<div class="home-grid">
+<div class="home-section"><h3>Recent Customers</h3><div id="recentCustomersList" class="list"></div></div>
+<div class="home-section"><h3>Recent Invoices</h3><div id="recentInvoicesList" class="list"></div></div>
+<div class="home-section"><h3>Upcoming Jobs — Next 7 Days</h3><div id="upcomingJobsList" class="list"></div></div>
+</div>
+</section>
+<section id="jobs" class="view">
+<div class="title-row"><h2>Jobs</h2><button class="primary" id="clearJobBtn" type="button">New Job</button></div>
+<div class="form-card"><input type="hidden" id="jobId"><div class="grid">
+<label>Customer<select id="jobCustomer"></select></label>
+<label>Status<select id="jobStatus"><option>Scheduled</option><option>Upcoming</option><option>In Progress</option><option>Completed</option><option>Cancelled</option></select></label>
+<label>Linked Estimate<select id="jobEstimate"></select></label>
+<label>Linked Invoice<select id="jobInvoice"></select></label>
+<label>Job Title<input id="jobTitle" placeholder="Tree trimming"></label>
+<label>Service Date<input id="jobDate" type="date"></label>
+<label>Start Time<input id="jobStart" type="time"></label>
+<label>End Time<input id="jobEnd" type="time"></label>
+<label>Crew Assigned<input id="jobCrew" placeholder="Westlake Crew"></label>
+<label>Location<textarea id="jobLocation"></textarea></label>
+<label>Completion Notes<textarea id="jobNotes"></textarea></label>
+</div><div class="row-actions">
+<button class="primary" id="saveJobBtn" type="button">Save Job</button>
+<button id="completeJobBtn" type="button">Complete Job</button>
+<button id="createInvoiceFromJobBtn" type="button">Create Invoice</button>
+<button class="danger" id="deleteJobBtn" type="button">Delete Job</button>
+</div></div>
+<div class="subtabs"><button class="subtab active" data-job-filter="upcoming" type="button">Upcoming</button><button class="subtab" data-job-filter="calendar" type="button">Calendar</button><button class="subtab" data-job-filter="completed" type="button">Completed</button><button class="subtab" data-job-filter="all" type="button">All</button></div>
+<div id="jobList" class="list"></div>
+</section>
+<section id="documents" class="view">
+<div class="title-row"><h2 id="documentsTitle">Invoices & Estimates</h2><button class="primary" id="clearDocumentBtn" type="button">New</button></div>
+<div class="form-card"><input type="hidden" id="documentId"><div class="grid">
+<label>Type<select id="documentType"><option>Invoice</option><option>Estimate</option></select></label>
+<label>Status<select id="documentStatus"><option>Draft</option><option>Sent</option><option>Unpaid</option><option>Partial Payment</option><option>Paid</option><option>Overdue</option><option>Pending Approval</option><option>Approved</option><option>Declined</option></select></label>
+<label>Customer<select id="documentCustomer"></select></label>
+<label>Job<select id="documentJob"></select></label>
+<label>Customer Name<input id="documentCustomerName"></label>
+<label>Customer Phone<input id="documentCustomerPhone"></label>
+<label>Customer Email<input id="documentCustomerEmail"></label>
+<label>Billing Address<textarea id="documentCustomerAddress"></textarea></label>
+<label>Property / Service Address<textarea id="documentPropertyAddress"></textarea></label>
+<label>Number<input id="documentNumber"></label>
+<label>Date<input id="documentDate" type="date"></label>
+<label>Due / Expiration<input id="documentDue" type="date"></label>
+</div><h3>Line Items</h3>
+<div class="row-actions"><select id="servicePicker"></select><button id="addServiceLineBtn" type="button">Add Service</button></div>
+<div id="lineItems" class="line-items"></div><button id="addBlankLineBtn" type="button">Add Blank Line</button>
+<div class="totals"><label class="check"><input id="documentApplyTax" type="checkbox"> Apply PA Sales Tax</label><label>Tax Rate %<input id="documentTaxRate" type="number" step="0.001" value="6"></label><div><span>Subtotal</span><strong id="documentSubtotal">$0.00</strong></div><div><span>Sales Tax</span><strong id="documentTax">$0.00</strong></div><div><span>Amount Paid</span><strong id="documentPaid">$0.00</strong></div><div class="grand"><span>Balance Due</span><strong id="documentBalance">$0.00</strong></div><div class="grand"><span>Total</span><strong id="documentTotal">$0.00</strong></div></div>
+<label>Notes<textarea id="documentNotes"></textarea></label>
+<label>Terms<textarea id="documentTerms"></textarea></label>
+<label>Payment Instructions<textarea id="documentPaymentInstructions"></textarea></label>
+<div id="signatureBlock"><h3>Customer Approval Signature</h3><p class="hint">Optional for estimates. It appears on printed estimates and invoices.</p><canvas id="signaturePad" width="800" height="220"></canvas><button id="clearSignatureBtn" type="button">Clear Signature</button></div>
+<div class="row-actions"><button class="primary" id="saveDocumentBtn" type="button">Save</button><button id="scheduleJobBtn" type="button">Schedule Job</button><button id="convertEstimateBtn" type="button">Convert Estimate to Invoice</button><button id="recordPaymentCurrentBtn" type="button">Record Payment</button><button id="markPaidBtn" type="button">Mark Paid</button><button id="printDocumentBtn" type="button">Print / PDF</button><button class="danger" id="deleteDocumentBtn" type="button">Delete</button></div>
+</div>
+<div id="paymentPanel" class="form-card hidden"><h3>Record Payment</h3><label>Invoice<select id="paymentInvoice"></select></label><div id="paymentInvoiceSummary" class="payment-summary"></div><div class="grid"><label>Payment Date<input id="paymentDate" type="date"></label><label>Amount<input id="paymentAmount" type="number" step="0.01"></label><label>Method<input id="paymentMethod" placeholder="Cash, check, card"></label><label>Notes<input id="paymentNotes"></label></div><button class="primary" id="savePaymentBtn" type="button">Save Payment</button></div>
+<input id="documentSearch" class="search" placeholder="Search invoices and estimates..."><div id="documentList" class="list"></div>
+</section>
+<section id="customers" class="view">
+<div class="title-row"><h2>Customers</h2><button class="primary" id="clearCustomerBtn" type="button">New Customer</button></div>
+<div class="form-card"><input type="hidden" id="customerId"><div class="grid"><label>Name<input id="customerName"></label><label>Phone<input id="customerPhone"></label><label>Email<input id="customerEmail"></label><label>Billing Address<textarea id="customerAddress"></textarea></label><label>Customer Property Address<textarea id="customerPropertyAddress"></textarea></label><label>Customer Notes<textarea id="customerNotes"></textarea></label><label class="check"><input id="customerMarketingOk" type="checkbox"> Marketing OK</label></div><div class="row-actions"><button class="primary" id="saveCustomerBtn" type="button">Save Customer</button><button class="danger" id="deleteCustomerBtn" type="button">Delete Customer</button></div></div>
+<input id="customerSearch" class="search" placeholder="Search customers..."><div id="customerList" class="list"></div>
+</section>
+<section id="equipment" class="view"><div class="title-row"><h2>Equipment</h2><button class="primary" id="clearEquipmentBtn" type="button">New Equipment</button></div><div class="form-card"><input type="hidden" id="equipmentId"><div class="grid"><label>Name<input id="equipmentName"></label><label>Serial / Model<input id="equipmentSerial"></label><label>Hours / Mileage<input id="equipmentHours"></label><label>Last Service<input id="equipmentLastService" type="date"></label><label>Next Service Due<input id="equipmentNextService" type="date"></label><label>Notes<textarea id="equipmentNotes"></textarea></label></div><button class="primary" id="saveEquipmentBtn" type="button">Save Equipment</button><button class="danger" id="deleteEquipmentBtn" type="button">Delete Equipment</button></div><div id="equipmentList" class="list"></div></section>
+<section id="expenses" class="view"><div class="title-row"><h2>Expenses</h2><button class="primary" id="clearExpenseBtn" type="button">New Expense</button></div><div class="form-card"><input type="hidden" id="expenseId"><div class="grid"><label>Date<input id="expenseDate" type="date"></label><label>Category<select id="expenseCategory"><option>Fuel</option><option>Oil / Chains</option><option>Equipment Repair</option><option>Materials</option><option>Insurance</option><option>Advertising</option><option>Other</option></select></label><label>Description<input id="expenseDescription"></label><label>Amount<input id="expenseAmount" type="number" step="0.01"></label></div><button class="primary" id="saveExpenseBtn" type="button">Save Expense</button><button class="danger" id="deleteExpenseBtn" type="button">Delete Expense</button></div><div id="expenseList" class="list"></div></section>
+<section id="reports" class="view"><div class="title-row"><h2>Reports</h2><button id="exportYearReportBtn" type="button">Export Year CSV</button></div><div class="form-card compact-card"><label>Year<select id="reportYear"></select></label></div><div class="report-grid"><div class="report-card primary-report-card"><span>Revenue</span><strong id="reportRevenue">$0.00</strong></div><div class="report-card"><span>Outstanding</span><strong id="reportOutstanding">$0.00</strong></div><div class="report-card"><span>Expenses</span><strong id="reportExpenses">$0.00</strong></div><div class="report-card"><span>Net Profit</span><strong id="reportNet">$0.00</strong></div><div class="report-card"><span>Taxable Sales</span><strong id="reportTaxable">$0.00</strong></div><div class="report-card"><span>PA Tax Collected</span><strong id="reportTax">$0.00</strong></div><div class="report-card"><span>Non-Taxable Sales</span><strong id="reportNonTaxable">$0.00</strong></div><div class="report-card"><span>Paid / Unpaid</span><strong id="reportPaidUnpaid">0 / 0</strong></div></div><div class="report-section"><h3>Revenue by Month</h3><div id="monthlyBars" class="bars"></div></div><div class="report-section"><h3>Revenue by Service</h3><div id="serviceRevenueReport" class="list"></div></div><div class="report-section"><h3>Revenue by Service Category</h3><div id="categoryRevenueReport" class="list"></div></div><div class="report-section"><h3>Top Customers</h3><div id="topCustomersReport" class="list"></div></div></section>
+<section id="settings" class="view"><h2>Settings</h2><details open class="settings-panel"><summary>Business / Account</summary><div class="form-card"><p><strong>Business ID for partner:</strong></p><p class="code" id="businessIdDisplay"></p><div class="grid"><label>Business Name<input id="settingsBusinessName"></label><label>Phone<input id="settingsPhone"></label><label>Email<input id="settingsEmail"></label><label>Address<textarea id="settingsAddress"></textarea></label><label>Default Tax Rate %<input id="settingsTaxRate" type="number" step="0.001"></label><label>Default Invoice Terms<textarea id="settingsInvoiceTerms"></textarea></label><label>Payment Instructions<textarea id="settingsPaymentInstructions"></textarea></label></div><div class="row-actions"><button class="primary" id="saveSettingsBtn" type="button">Save Settings</button><button id="signOutBtn" type="button">Sign Out</button><button class="danger" id="resetSetupInAppBtn" type="button">Reset Supabase Setup</button></div></div></details><details class="settings-panel"><summary>Services</summary><div class="form-card"><input type="hidden" id="serviceId"><div class="grid"><label>Name<input id="serviceName"></label><label>Default Price<input id="servicePrice" type="number" step="0.01"></label><label>Category<input id="serviceCategory" placeholder="Tree Service"></label><label class="check"><input id="serviceTaxable" type="checkbox"> Taxable Service</label><label>Description<textarea id="serviceDescription"></textarea></label></div><button class="primary" id="saveServiceBtn" type="button">Save Service</button><button class="danger" id="deleteServiceBtn" type="button">Delete Service</button></div><div id="serviceList" class="list"></div></details><details class="settings-panel"><summary>History</summary><div id="historyList" class="list"></div></details><details class="settings-panel"><summary>Marketing</summary><div class="form-card"><label class="check"><input id="exportOnlyMarketingOk" type="checkbox" checked> Export only Marketing OK customers</label><button class="primary" id="exportMarketingBtn" type="button">Export Brevo CSV</button><button id="copyMarketingEmailsBtn" type="button">Copy Email List</button></div><div id="marketingList" class="list"></div></details><details class="settings-panel"><summary>Backups</summary><div class="form-card"><button class="primary" id="exportBackupBtn" type="button">Export JSON Backup</button><label class="button-like">Import JSON Backup<input id="importBackupFile" type="file" accept="application/json"></label><p class="hint">Export backups regularly. Import is manual-safe in this cloud version to avoid duplicate records.</p></div></details></section>
+</main>
+</div>
+<section id="printArea"></section>
+<script type="module" src="app.js"></script>
+</body></html>
